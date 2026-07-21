@@ -13,6 +13,20 @@ use crate::{
 
 use super::speed::CodexSpeedPolicy;
 
+const USD_PER_CREDIT: f64 = 0.04;
+
+fn format_credits(cost_usd: f64) -> String {
+    format!("{:.2}", cost_usd / USD_PER_CREDIT)
+}
+
+fn codex_cost_cells(cost_usd: f64, no_cost: bool) -> Vec<String> {
+    if no_cost {
+        Vec::new()
+    } else {
+        vec![format_credits(cost_usd), format_currency(cost_usd)]
+    }
+}
+
 pub(super) fn report_from_groups(
     groups: &BTreeMap<String, CodexGroup>,
     kind: AgentReportKind,
@@ -362,6 +376,7 @@ fn codex_table_columns(
         "Cache Create",
         "Cache Read",
         "Total Tokens",
+        "Credits",
         "Cost (USD)",
     ];
     let mut aligns = vec![
@@ -374,10 +389,11 @@ fn codex_table_columns(
         Align::Right,
         Align::Right,
         Align::Right,
+        Align::Right,
     ];
     if no_cost {
-        headers.pop();
-        aligns.pop();
+        headers.truncate(headers.len() - 2);
+        aligns.truncate(aligns.len() - 2);
     }
     (headers, aligns)
 }
@@ -407,11 +423,8 @@ fn codex_table_row(
         format_number(group.cache_creation_tokens),
         format_number(group.cached_input_tokens),
         format_number(group.total_tokens),
-        format_currency(cost),
     ];
-    if no_cost {
-        row.pop();
-    }
+    row.extend(codex_cost_cells(cost, no_cost));
     (row, input_tokens, cost)
 }
 
@@ -481,11 +494,12 @@ fn codex_table_total_row(
             Color::Yellow,
         ),
         color(shared, format_number(totals.total_tokens), Color::Yellow),
-        color(shared, format_currency(totals.cost), Color::Yellow),
     ];
-    if no_cost {
-        row.pop();
-    }
+    row.extend(
+        codex_cost_cells(totals.cost, no_cost)
+            .into_iter()
+            .map(|value| color(shared, value, Color::Yellow)),
+    );
     row
 }
 
@@ -683,5 +697,59 @@ mod tests {
         assert_ne!(first_row[0], second_row[0]);
         assert_eq!(first_row[5], "30");
         assert_eq!(total_row[5], "60");
+    }
+
+    #[test]
+    fn formats_codex_credits_from_usd_cost() {
+        assert_eq!(format_credits(0.06), "1.50");
+    }
+
+    #[test]
+    fn adds_credits_before_usd_cost_in_codex_tables() {
+        let (headers, aligns) = codex_table_columns("Date", false);
+
+        assert_eq!(
+            headers,
+            vec![
+                "Date",
+                "Models",
+                "Input",
+                "Output",
+                "Reasoning",
+                "Cache Create",
+                "Cache Read",
+                "Total Tokens",
+                "Credits",
+                "Cost (USD)",
+            ]
+        );
+        assert_eq!(headers.len(), aligns.len());
+        assert_eq!(aligns[8], Align::Right);
+    }
+
+    #[test]
+    fn formats_codex_cost_cells_in_credit_then_usd_order() {
+        assert_eq!(codex_cost_cells(0.06, false), vec!["1.50", "$0.06"]);
+    }
+
+    #[test]
+    fn hides_both_codex_cost_columns_when_no_cost_is_set() {
+        let (headers, aligns) = codex_table_columns("Date", true);
+
+        assert_eq!(
+            headers,
+            vec![
+                "Date",
+                "Models",
+                "Input",
+                "Output",
+                "Reasoning",
+                "Cache Create",
+                "Cache Read",
+                "Total Tokens",
+            ]
+        );
+        assert_eq!(headers.len(), aligns.len());
+        assert!(codex_cost_cells(0.04, true).is_empty());
     }
 }

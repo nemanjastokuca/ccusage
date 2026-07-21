@@ -179,7 +179,7 @@ bunx ccusage monthly --compact  # Compact monthly report
 - 📸 **Compact Mode**: Use `--compact` flag to force compact table layout, perfect for screenshots and sharing
 - 📋 **Enhanced Model Display**: Model names shown as bulleted lists for better readability
 - 📄 **JSON Output**: Export data in structured JSON format with `--json`
-- 💰 **Cost Tracking**: Shows costs in USD for each day/month/session
+- 💰 **Cost Tracking**: Shows costs in USD, plus credit equivalents in focused Codex tables
 - 🔒 **Cost Hiding**: Remove cost columns and JSON cost fields with `--no-cost`
 - 🔄 **Cache Token Support**: Tracks and displays cache creation and cache read tokens separately
 - 🌐 **Offline Mode**: Use pre-cached pricing data without network connectivity with `--offline`

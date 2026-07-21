@@ -142,6 +142,7 @@ dependencies = [
  "ccusage-config",
  "ccusage-core",
  "ccusage-test-support",
+ "insta",
  "mimalloc",
  "serde",
  "serde_json",

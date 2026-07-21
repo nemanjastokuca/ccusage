@@ -153,6 +153,8 @@ mod tests {
         assert_eq!(report["totals"]["cacheCreationTokens"], 0);
         assert_eq!(report["totals"]["cacheReadTokens"], 90);
         assert_eq!(report["totals"]["totalTokens"], 105);
+        assert!(report["daily"][0].get("credits").is_none());
+        assert!(report["totals"].get("credits").is_none());
         assert_eq!(report["daily"][0]["models"]["gpt-5"]["inputTokens"], 10);
         assert_eq!(
             report["daily"][0]["models"]["gpt-5"]["cacheCreationTokens"],
